@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14161a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Escalada">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<title>Plan Escalada</title>
+<style>
+:root{
+  --bg:#14161a; --card:#1d2026; --card2:#252932; --line:#2f343e;
+  --txt:#eef0f3; --muted:#9aa2ae; --acc:#f2a33a;
+  --dura:#e5534b; --media:#e6a23c; --suave:#3fb950; --aero:#4ea1f3; --desc:#6e7681; --race:#c678dd;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:16px}
+body{padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 24px)}
+.wrap{max-width:640px;margin:0 auto;padding:16px}
+header h1{font-size:22px;margin:4px 0 2px}
+header p{margin:0;color:var(--muted);font-size:14px}
+.weeks{display:flex;gap:8px;overflow-x:auto;padding:14px 0 6px;scrollbar-width:none}
+.weeks::-webkit-scrollbar{display:none}
+.wk{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--txt);border-radius:999px;padding:7px 13px;font-size:14px;font-weight:600}
+.wk.on{background:var(--acc);border-color:var(--acc);color:#1a1a1a}
+.wk.now:not(.on){border-color:var(--acc)}
+.banner{background:var(--card2);border-left:4px solid var(--acc);border-radius:10px;padding:10px 12px;font-size:14px;margin:8px 0 12px;line-height:1.4}
+.days{display:flex;flex-direction:column;gap:8px}
+.day{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;cursor:pointer;width:100%;text-align:left;color:var(--txt);font:inherit}
+.day.today{border-color:var(--acc)}
+.dl{width:44px;flex:0 0 44px;text-align:center}
+.dl b{display:block;font-size:18px}
+.dl span{font-size:12px;color:var(--muted)}
+.dm{flex:1;min-width:0}
+.dm .t{font-weight:600;font-size:15px;line-height:1.25}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;margin-top:5px;color:#111}
+.chk{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);flex:0 0 26px;display:flex;align-items:center;justify-content:center;font-size:15px}
+.chk.ok{background:var(--suave);border-color:var(--suave);color:#111}
+h2{font-size:18px;margin:28px 0 8px}
+.hint{color:var(--muted);font-size:13px;margin:0 0 10px}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;min-width:900px;width:100%;font-size:13px}
+th,td{border-bottom:1px solid var(--line);padding:6px;text-align:left;vertical-align:top}
+th{background:var(--card2);color:var(--muted);font-weight:600;position:sticky;top:0}
+th:first-child,td:first-child{position:sticky;left:0;background:var(--card2);z-index:1;width:52px;text-align:center;font-weight:700}
+td input,td textarea{width:100%;background:var(--card);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:7px;font:inherit;font-size:14px}
+td textarea{resize:vertical;min-height:36px}
+td.f{white-space:nowrap;color:var(--muted);font-size:12px}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.btn{background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:10px 14px;font:inherit;font-size:14px;font-weight:600}
+.btn.p{background:var(--acc);border-color:var(--acc);color:#1a1a1a}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:10px}
+summary{font-weight:700;cursor:pointer}
+details li{margin:6px 0;line-height:1.4;font-size:14px}
+/* detalle */
+.sheet{position:fixed;inset:0;background:var(--bg);z-index:10;overflow-y:auto;transform:translateX(100%);transition:transform .25s ease}
+.sheet.open{transform:none}
+.sheet .wrap{padding-top:calc(env(safe-area-inset-top) + 12px)}
+.back{background:none;border:none;color:var(--acc);font:inherit;font-size:16px;font-weight:600;padding:6px 0}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:12px}
+.sec h3{margin:0 0 6px;font-size:16px}
+.sec h3 small{color:var(--muted);font-weight:500}
+.sec ol,.sec ul{margin:0;padding-left:20px}
+.sec li{margin:6px 0;line-height:1.45;font-size:15px}
+.done{width:100%;margin-top:16px;padding:14px}
+.saved{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 16px);left:50%;transform:translateX(-50%);background:var(--suave);color:#111;font-weight:700;padding:8px 16px;border-radius:999px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+.saved.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Plan de escalada · Nico</h1>
+    <p id="sub"></p>
+  </header>
+  <div class="weeks" id="weeks"></div>
+  <div class="banner" id="banner"></div>
+  <div class="days" id="days"></div>
+
+  <h2>Registro de cargas</h2>
+  <p class="hint">Kg de lastre en multipresa (o total en el lifting edge). Codo de 0 a 10. Se guarda solo en este móvil.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Sem</th><th>Fechas</th><th>Lifting edge (kg)</th><th>Multipresa (kg)</th><th>Bloques límite / encadenados</th><th>Kilter (bloques y grado)</th><th>Codo</th><th>Notas</th></tr></thead>
+    <tbody id="reg"></tbody>
+  </table></div>
+  <div class="btns">
+    <button class="btn p" id="addRow">+ Añadir semana</button>
+    <button class="btn" id="exp">Exportar copia</button>
+    <button class="btn" id="imp">Importar copia</button>
+    <input type="file" id="impFile" accept="application/json" hidden>
+  </div>
+
+  <details>
+    <summary>Reglas no negociables</summary>
+    <ol>
+      <li><b>Semiarqueo o mano abierta</b> en todo el entrenamiento de dedos. La regleta cerrada al límite es la causa número uno de lesiones de polea.</li>
+      <li><b>Si un dedo o el codo avisan, ese día se baja la carga.</b> Perder una sesión es mejor que perder un mes.</li>
+      <li><b>Dormir 8 h y comer suficiente</b>, sobre todo proteína. Con escalada y carrera juntas, el déficit calórico es el enemigo silencioso.</li>
+    </ol>
+  </details>
+  <details>
+    <summary>Semáforo del codo</summary>
+    <ul>
+      <li>Si al día siguiente la molestia pasa de 3/10: en la siguiente sesión fuera la Kilter más desplomada, los lanzamientos y parte del lifting edge.</li>
+      <li>Si dura más de una semana: fisio.</li>
+    </ul>
+  </details>
+</div>
+
+<div class="sheet" id="sheet"><div class="wrap" id="sheetBody"></div></div>
+<div class="saved" id="saved">Guardado</div>
+
+<script>
+// ---------- Fechas ----------
+const START = new Date(2026, 8, 28); // lunes 28 sep 2026
+const DAY = 864e5;
+const MAX_WEEKS = 14;
+const DN = ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
+const DS = ["L","M","X","J","V","S","D"];
+const MES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+const dateOf = (w, d) => new Date(START.getTime() + ((w - 1) * 7 + d) * DAY);
+const fmt = dt => dt.getDate() + " " + MES[dt.getMonth()];
+const range = w => fmt(dateOf(w, 0)) + " – " + fmt(dateOf(w, 6));
+function todayInfo(){
+  const t = new Date(); t.setHours(0,0,0,0);
+  const diff = Math.floor((t - START) / DAY);
+  if (diff < 0) return {w:1, d:-1};
+  return {w: Math.floor(diff / 7) + 1, d: diff % 7};
+}
+
+// ---------- Fases ----------
+function phase(w){
+  if (w <= 2) return "carga";
+  if (w === 3) return "test";
+  if (w === 4) return "descarga";
+  if (w === 5) return "carga";
+  if (w === 6) return "carrera";
+  if (w === 7) return "recup";
+  return ((w - 8) % 4 === 3) ? "descarga2" : "carga2";
+}
+const PHASE_TXT = {
+  carga: "Semana de carga. Sube poco a poco; los dedos con margen cómodo.",
+  test: "Semana de carga + test de dedos el jueves. Desde esta semana, suspensiones con 3 s de margen antes del fallo.",
+  descarga: "Semana de descarga: mitad de volumen, nada al límite, dedos suaves o nada. Aquí es donde se asimila lo entrenado.",
+  carrera: "Semana de la Behobia (domingo 8 nov). Escalada corta y suave; viernes y sábado descanso.",
+  recup: "Semana de recuperación tras la Behobia: dos sesiones tranquilas de técnica, sin límite ni dedos.",
+  carga2: "Bloque 2 · semana de carga. Entra la sesión fija de resistencia de fuerza del sábado.",
+  descarga2: "Bloque 2 · semana de descarga. Mitad de volumen y nada al límite. Buen momento para el retest de dedos."
+};
+const PHASE_SHORT = {carga:"Carga",test:"Carga + test",descarga:"Descarga",carrera:"Semana de carrera",recup:"Recuperación",carga2:"Bloque 2 · carga",descarga2:"Bloque 2 · descarga"};
+
+// ---------- Bloques de contenido ----------
+const WARM = {h:"Calentamiento", s:"20–25'", t:"ol", i:[
+  "5' de pulso y movilidad de hombros y muñecas.",
+  "Bloques fáciles subiendo de 5+ a 6b.",
+  "2–3 suspensiones progresivas en canto grande."]};
+const CODO = {h:"Protección del codo", s:"~20'", t:"ul", i:[
+  "Excéntricos de muñeca (flexores y extensores): 3 × 15, mancuerna ligera, bajando en 3–4 s.",
+  "Pronación / supinación con martillo o mancuerna cogida por un extremo: 3 × 12.",
+  "Flexiones: 3 × 10–15.",
+  "Rotaciones externas con goma: 3 × 15.",
+  "Core: plancha y elevaciones de piernas colgado, 3 series."]};
+const TECH = (light) => ({h:"Técnica y volumen", s: light ? "~45', suave" : "~75'", t:"ul", i:[
+  (light ? "8–10" : "15–20") + " bloques de 6a a 6b+ con pies silenciosos, pies pegados (sin recolocar) y destrepando.",
+  "Dinámicos fáciles a cazos para la coordinación y el “catch”.",
+  "Romos fáciles jugando con la posición de cadera y talones.",
+  "Repetir bloques ya hechos de otra manera o más limpios."]});
+
+function LE(p, w){
+  if (p === "descarga" || p === "descarga2") return {h:"Lifting edge", s:"suave", t:"ul", i:["2–3 series suaves de 10 s por agarre y mano, o nada."]};
+  const carga = w <= 2 ? "Carga cómoda: podrías aguantar 5–6 s más."
+    : p === "carga2" ? "Carga con 3 s de margen, ajustada según el último test."
+    : "Carga con 3 s de margen antes del fallo.";
+  return {h:"Lifting edge a una mano", s:"~15'", t:"ul", i:[
+    "Agarres: mano abierta / 3 dedos (para romos) y semiarqueo. Nunca regleta cerrada.",
+    "4–5 series de 10 s por agarre y mano, 2' de descanso.",
+    carga]};
+}
+function MULTI(p, w){
+  if (p === "test") return {h:"Test de dedos (multipresa)", s:"en lugar de las suspensiones", t:"ul", i:[
+    "Carga máxima aguantando 7 s a dos manos en canto de 20 mm, en semiarqueo.",
+    "Sube lastre poco a poco, con 3' de descanso entre intentos.",
+    "Referencia V5–V6 (Lattice): 134–140% del peso. Con 73 kg ≈ +25–29 kg de lastre. Es la dirección, no hace falta llegar ya.",
+    "Apunta el resultado en el registro."]};
+  if (p === "descarga" || p === "descarga2") return {h:"Multipresa", s:"suave", t:"ul", i:["2–3 × 10 s suaves, o nada."]};
+  const maxh = (w === 5 || p === "carga2");
+  return {h:"Multipresa a dos manos · 20 mm semiarqueo", s:"~15'", t:"ul", i: maxh ? [
+    "MaxHangs (Eva López): 5 × 10 s con 3 s de margen antes del fallo.",
+    "3' de descanso entre series."] : [
+    "5 × 10 s con carga cómoda.",
+    "2' de descanso entre series."]};
+}
+// Ángulos de la Kilter en el rocódromo (L..D). Último lunes de mes: 60°
+const ANG = [30,40,50,40,30,40,20];
+function isLastMonday(w){ const d = dateOf(w, 0); return new Date(d.getTime() + 7*DAY).getMonth() !== d.getMonth(); }
+const angle = (w, d) => (d === 0 && isLastMonday(w)) ? 60 : ANG[d];
+
+const LIMIT = (w) => ({h:"Bloque al límite", s:"~60'", t:"ul", i:[
+  "3–4 bloques de 7a/7a+ (o pasos de bloques más duros), priorizando romos y dinámicos.",
+  "4–6 intentos por bloque, 3–5' de descanso, cada pegue al 100%.",
+  "Para cuando los intentos pierdan chispa: esa es la señal, no el reloj.",
+  isLastMonday(w)
+    ? "Hoy es el último lunes de mes y la Kilter está a 60°: nada de Kilter hoy, es demasiado agresivo para dedos y codo."
+    : "Opcional: la Kilter hoy está a 30°, buen ángulo para romos y trabajo de pies. Si quieres, mete 1–2 bloques de romos ahí dentro de este mismo tiempo."]});
+const LIMIT_D = {h:"Bloque (descarga)", s:"~40'", t:"ul", i:["Sin intentos al límite: bloques de 6b–6c cómodos, mitad de volumen."]};
+const KILTER = {h:"Kilter a 40°", s:"~60'", t:"ul", i:[
+  "El jueves la Kilter está a 40°: buen ángulo para regletas en desplome y lanzamientos.",
+  "Antes de ir al límite, 3–4 bloques fáciles en la Kilter (V2–V3) para hacerte al ángulo.",
+  "Luego 3–4 bloques de regletas y lanzamientos en torno a V4–V6, en modo límite: 4–6 intentos por bloque con 3–5' de descanso.",
+  "Al principio, evita los que son casi campus: el codo lo agradecerá."]};
+const KILTER_D = {h:"Kilter a 40° (descarga)", s:"~30'", t:"ul", i:["Bloques cómodos, 2–3 grados por debajo de tu límite, mitad de volumen."]};
+const REST = {h:"Descanso", s:"", t:"ul", i:["Descanso total. Si apetece, 10–15' de movilidad suave."]};
+const run = (txt) => ({h:"Carrera", s:"", t:"ul", i:[txt]});
+const NO_K50 = {h:"Kilter", s:"", t:"ul", i:["Hoy está a 50°: no la uses en esta sesión. No aporta a la técnica y carga mucho el codo."]};
+
+const I = {dura:["Dura","--dura"], media:["Media","--media"], suave:["Suave","--suave"], aero:["Aeróbica","--aero"], desc:["Descanso","--desc"], race:["Carrera","--race"], comp:["Competición","--race"]};
+
+// Semana 1: cambios de ritmo ya hechos el domingo 27 y competición el sábado 3 oct por la tarde
+function week1(d){
+  switch(d){
+    case 1: return {t:"Carrera suave + codo", k:"suave", s:[run("Rodaje suave de base aeróbica (ritmo conversacional). Los cambios de ritmo ya los hiciste el domingo."), CODO]};
+    case 2: return {t:"Sesión B · Técnica y volumen", k:"suave", s:[WARM, TECH(false), NO_K50, {h:"Carrera", s:"", t:"ul", i:["Hoy no toca correr: el rodaje suave de esta semana fue el martes."]}]};
+    case 3: return {t:"Sesión C suave · pre-competición", k:"media", s:[WARM,
+      {h:"Multipresa a dos manos · 20 mm semiarqueo", s:"~10'", t:"ul", i:["3 × 10 s con carga cómoda, 2' de descanso.","Solo para activar: nada de apurar."]},
+      {h:"Kilter a 40°", s:"~40'", t:"ul", i:["Bloques moderados (V3–V4), fluidos, nada al límite.","Algún lanzamiento fácil para tener el “catch” fino de cara al sábado.","Sal con ganas de más: el objetivo es llegar fresco a la competi."]}]};
+    case 4: return {t:"Descanso · mañana compites", k:"desc", s:[{h:"Descanso", s:"", t:"ul", i:["Descanso total, nada de dedos.","Si apetece, 10–15' de movilidad suave.","Cena bien y duerme."]}]};
+    case 5: return {t:"Competición (tarde)", k:"comp", s:[
+      {h:"Antes", s:"", t:"ul", i:["Mañana tranquila. Come bien 2–3 h antes.","Calentamiento de 25–30' progresivo: pulso y movilidad, bloques fáciles, 2–3 suspensiones suaves y algún paso dinámico y de romos antes de empezar."]},
+      {h:"Durante", s:"", t:"ul", i:["Lee bien cada bloque antes del primer pegue.","Descansa 3–4' entre intentos serios; no encadenes pegues por nervios.","Si un dedo o el codo avisan, no fuerces ese bloque."]},
+      {h:"Después", s:"", t:"ul", i:["Estira suave, come y bebe bien.","Apunta en las notas del registro qué bloques salieron y cuáles no: te dice mucho de tus puntos flojos."]}]};
+    case 6: return {t:"Tirada larga suave", k:"aero", s:[run("Tirada larga según el plan de la Behobia, pero a ritmo cómodo: vienes de competir. Si llegas muy cargado, acórtala un poco.")]};
+  }
+  return null;
+}
+
+function plan(w, d){
+  if (w === 1){ const x = week1(d); if (x) return x; }
+  const p = phase(w);
+  const dl = (p === "descarga" || p === "descarga2");
+  const b1 = w <= 6;
+  switch(d){
+    case 0:
+      if (p === "carrera") return {t:"Técnica suave", k:"suave", s:[WARM, TECH(true)]};
+      if (p === "recup") return {t:"Técnica tranquila", k:"suave", s:[WARM, TECH(true)]};
+      return {t: dl ? "Sesión A · descarga" : "Sesión A · Lifting edge + bloque al límite", k: dl ? "media" : "dura", s:[WARM, LE(p, w), dl ? LIMIT_D : LIMIT(w)]};
+    case 1:
+      if (p === "recup") return {t:"Descanso", k:"desc", s:[REST]};
+      if (p === "carrera") return {t:"Carrera suave + codo ligero", k:"suave", s:[run("Rodaje corto según el plan de carrera. Nada de cambios de ritmo fuertes."), {...CODO, s:"versión ligera, 1–2 series"}]};
+      if (b1) return {t:"Correr cambios de ritmo + codo", k:"dura", s:[run("Cambios de ritmo según el plan de la Behobia."), CODO]};
+      return {t:"Codo + core", k:"suave", s:[CODO]};
+    case 2:
+      if (p === "recup") return {t:"Descanso o carrera suave", k:"suave", s:[run("Opcional: rodaje suave de 30–40'."), REST]};
+      if (p === "carrera") return {t:"Carrera suave + movilidad", k:"suave", s:[run("Rodaje suave según el plan de carrera."), {h:"Movilidad", s:"15'", t:"ul", i:["Movilidad de caderas, hombros y muñecas."]}]};
+      if (b1) return {t:"Carrera suave + Sesión B técnica", k:"suave", s:[run("Base aeróbica suave (ritmo conversacional)."), WARM, TECH(dl), NO_K50]};
+      return {t:"Sesión B · Técnica y volumen", k:"suave", s:[WARM, TECH(dl), NO_K50, {h:"Carrera", s:"opcional", t:"ul", i:["Si sigue corriendo: rodaje suave."]}]};
+    case 3:
+      if (p === "carrera") return {t:"Kilter corto", k:"media", s:[WARM, {h:"Kilter a 40°", s:"~45'", t:"ul", i:["Bloques moderados, nada al límite.","Sin multipresa esta semana."]}]};
+      if (p === "recup") return {t:"Técnica tranquila", k:"suave", s:[WARM, TECH(true)]};
+      return {t: p === "test" ? "Sesión C · Test de dedos + Kilter" : (dl ? "Sesión C · descarga" : "Sesión C · Multipresa + Kilter"), k: dl ? "media" : "dura", s:[WARM, MULTI(p, w), dl ? KILTER_D : KILTER]};
+    case 4:
+      return {t:"Descanso", k:"desc", s:[REST]};
+    case 5:
+      if (p === "carrera" || p === "recup" || dl) return {t:"Descanso", k:"desc", s:[REST]};
+      if (b1) return {t:"Sesión D opcional · Proyectos", k:"media", s:[{h:"Proyectos libres", s:"opcional", t:"ul", i:["Bloque o Kilter (hoy a 40°), sin trabajo de dedos.","Solo si llegas fresco; si no, descanso."]}]};
+      return {t:"Sesión D · Resistencia de fuerza", k:"dura", s:[WARM, {h:"Resistencia de fuerza", s:"~45'", t:"ul", i:["4×4: 4 bloques de 6a+ a 6b+ seguidos, 4 veces, 3–4' de descanso entre series.","Alternativa: tríos de bloques en la Kilter a 40° (3 bloques seguidos de V2–V3, 4–5 series)."]}]};
+    case 6:
+      if (p === "carrera") return {t:"¡Behobia!", k:"race", s:[{h:"Día de carrera", s:"", t:"ul", i:["A disfrutar. Nada de escalada hoy ni mañana."]}]};
+      if (b1) return {t:"Tirada larga", k:"aero", s:[run("Tirada larga según el plan de la Behobia.")]};
+      return {t:"Descanso o carrera suave", k:"suave", s:[run("Opcional: rodaje suave."), REST]};
+  }
+}
+
+// ---------- Estado ----------
+const LS = "escaladaNico.v1";
+let state = {done:{}, reg:null};
+try { const raw = localStorage.getItem(LS); if (raw) state = Object.assign(state, JSON.parse(raw)); } catch(e){}
+if (!state.reg){
+  const notes = {3:"Test 7 s en 20 mm: ", 4:"Descarga", 6:"Behobia 8 nov"};
+  state.reg = [1,2,3,4,5,6].map(w => ({w, le:"", mp:"", lim:"", kil:"", codo:"", notas: notes[w] || ""}));
+}
+function save(){
+  try { localStorage.setItem(LS, JSON.stringify(state)); } catch(e){}
+  const s = document.getElementById("saved"); s.classList.add("show");
+  clearTimeout(save.t); save.t = setTimeout(() => s.classList.remove("show"), 900);
+}
+
+// ---------- Render ----------
+const now = todayInfo();
+let selW = Math.min(Math.max(now.w, 1), MAX_WEEKS);
+
+function renderWeeks(){
+  const el = document.getElementById("weeks"); el.innerHTML = "";
+  for (let w = 1; w <= MAX_WEEKS; w++){
+    const b = document.createElement("button");
+    b.className = "wk" + (w === selW ? " on" : "") + (w === now.w ? " now" : "");
+    b.textContent = "S" + w;
+    b.onclick = () => { selW = w; render(); };
+    el.appendChild(b);
+  }
+  const on = el.querySelector(".on"); if (on) on.scrollIntoView({inline:"center", block:"nearest"});
+}
+function render(){
+  const p = phase(selW);
+  document.getElementById("sub").textContent = "Semana " + selW + " · " + range(selW) + " · " + PHASE_SHORT[p];
+  document.getElementById("banner").textContent = selW === 1 ? "Semana de carga con competición el sábado por la tarde. Los cambios de ritmo ya están hechos (domingo), así que el martes toca rodaje suave. Jueves suave y viernes descanso para llegar fresco." : PHASE_TXT[p];
+  renderWeeks();
+  const days = document.getElementById("days"); days.innerHTML = "";
+  for (let d = 0; d < 7; d++){
+    const pl = plan(selW, d), [lab, col] = I[pl.k];
+    const done = !!state.done[selW + "-" + d];
+    const btn = document.createElement("button");
+    btn.className = "day" + (selW === now.w && d === now.d ? " today" : "");
+    btn.innerHTML = `<div class="dl"><b>${DS[d]}</b><span>${fmt(dateOf(selW, d))}</span></div>
+      <div class="dm"><div class="t">${pl.t}</div><span class="pill" style="background:var(${col})">${lab}</span></div>
+      <div class="chk ${done ? "ok" : ""}">${done ? "✓" : ""}</div>`;
+    btn.onclick = () => openDay(d);
+    days.appendChild(btn);
+  }
+}
+function openDay(d){
+  const pl = plan(selW, d), [lab, col] = I[pl.k], key = selW + "-" + d;
+  const body = document.getElementById("sheetBody");
+  const secs = pl.s.map(s => `<div class="sec"><h3>${s.h}${s.s ? ` <small>· ${s.s}</small>` : ""}</h3><${s.t}>${s.i.map(x => `<li>${x}</li>`).join("")}</${s.t}></div>`).join("");
+  const done = !!state.done[key];
+  body.innerHTML = `<button class="back" id="back">‹ Semana ${selW}</button>
+    <h1 style="font-size:22px;margin:8px 0 2px">${DN[d]} · ${fmt(dateOf(selW, d))}</h1>
+    <div style="font-weight:600;font-size:16px;margin-bottom:4px">${pl.t}</div>
+    <span class="pill" style="background:var(${col})">${lab}</span>
+    <div style="color:var(--muted);font-size:13px;margin-top:8px">Kilter hoy en el rocódromo: <b style="color:var(--txt)">${angle(selW, d)}°</b></div>
+    ${secs}
+    <button class="btn ${done ? "" : "p"} done" id="toggle">${done ? "Desmarcar" : "Marcar como hecho ✓"}</button>`;
+  document.getElementById("back").onclick = closeDay;
+  document.getElementById("toggle").onclick = () => {
+    if (state.done[key]) delete state.done[key]; else state.done[key] = true;
+    save(); closeDay(); render();
+  };
+  const sh = document.getElementById("sheet"); sh.scrollTop = 0; sh.classList.add("open");
+  history.pushState({sheet:1}, "");
+}
+function closeDay(){
+  const sh = document.getElementById("sheet");
+  if (sh.classList.contains("open")){ sh.classList.remove("open"); if (history.state && history.state.sheet) history.back(); }
+}
+window.addEventListener("popstate", () => document.getElementById("sheet").classList.remove("open"));
+
+// ---------- Registro ----------
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
+function renderReg(){
+  const tb = document.getElementById("reg"); tb.innerHTML = "";
+  state.reg.forEach((r, i) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${r.w}</td><td class="f">${range(r.w)}</td>
+      <td><input inputmode="decimal" data-k="le" value="${esc(r.le)}"></td>
+      <td><input inputmode="decimal" data-k="mp" value="${esc(r.mp)}"></td>
+      <td><textarea data-k="lim">${esc(r.lim)}</textarea></td>
+      <td><textarea data-k="kil">${esc(r.kil)}</textarea></td>
+      <td><input inputmode="numeric" data-k="codo" value="${esc(r.codo)}" style="width:56px"></td>
+      <td><textarea data-k="notas">${esc(r.notas)}</textarea></td>`;
+    tr.querySelectorAll("[data-k]").forEach(inp => inp.addEventListener("change", () => { state.reg[i][inp.dataset.k] = inp.value; save(); }));
+    tb.appendChild(tr);
+  });
+}
+document.getElementById("addRow").onclick = () => {
+  const w = state.reg.length ? state.reg[state.reg.length - 1].w + 1 : 1;
+  state.reg.push({w, le:"", mp:"", lim:"", kil:"", codo:"", notas: phase(w) === "descarga2" ? "Descarga · retest" : ""});
+  save(); renderReg();
+};
+document.getElementById("exp").onclick = () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:"application/json"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = "escalada-nico-" + new Date().toISOString().slice(0,10) + ".json"; a.click();
+};
+document.getElementById("imp").onclick = () => document.getElementById("impFile").click();
+document.getElementById("impFile").onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const data = JSON.parse(r.result);
+      if (!data.reg) throw 0;
+      if (!confirm("Esto sustituye el registro actual por la copia. ¿Seguir?")) return;
+      state = {done: data.done || {}, reg: data.reg}; save(); render(); renderReg();
+    } catch(err){ alert("El archivo no es una copia válida."); }
+  };
+  r.readAsText(f);
+};
+
+render(); renderReg();
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>
